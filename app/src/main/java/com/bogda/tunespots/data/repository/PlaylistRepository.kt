@@ -3,6 +3,9 @@ package com.bogda.tunespots.data.repository
 import android.net.Uri
 import com.bogda.tunespots.domain.model.Playlist
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.toObjects
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -28,6 +31,17 @@ class PlaylistRepository @Inject constructor(
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
+        }
+    }
+
+    suspend fun getAllPlaylists(): Flow<List<Playlist>> = flow {
+        try {
+            val snapshot = playlistCollection.get().await()
+            val playlists = snapshot.toObjects<Playlist>()
+            emit(playlists)
+        } catch (e: Exception) {
+            // In a real app, you'd want to handle this error more gracefully
+            emit(emptyList())
         }
     }
 

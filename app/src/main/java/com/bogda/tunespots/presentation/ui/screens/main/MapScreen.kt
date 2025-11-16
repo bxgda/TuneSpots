@@ -20,15 +20,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.bogda.tunespots.R
+import com.bogda.tunespots.domain.model.Playlist
 import com.bogda.tunespots.presentation.ui.viewmodels.main.MapViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapUiSettings
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -52,10 +57,8 @@ fun MapScreen(
 
     val uiState by viewModel.uiState.collectAsState()
 
-    // Animiraj kameru na lokaciju korisnika kada postane dostupna po prvi put
     LaunchedEffect(uiState.lastKnownLocation) {
         uiState.lastKnownLocation?.let {
-            // Koristimo stanje kamere iz ViewModel-a
             viewModel.cameraPositionState.animate(
                 update = CameraUpdateFactory.newLatLngZoom(it, 15f),
                 durationMs = 1500
@@ -72,8 +75,11 @@ fun MapScreen(
                 LaunchedEffect(Unit) {
                     viewModel.startLocationUpdates()
                 }
-                // Prosleđujemo stanje kamere iz ViewModel-a u MapView
-                MapView(cameraPositionState = viewModel.cameraPositionState)
+                MapView(
+                    cameraPositionState = viewModel.cameraPositionState,
+                    playlists = uiState.playlists,
+                    nearbyPlaylistIds = uiState.nearbyPlaylistIds
+                )
             }
             locationPermissions.shouldShowRationale -> {
                 Text("Dozvola za lokaciju je neophodna za prikaz mape.")
@@ -95,9 +101,11 @@ fun MapScreen(
 }
 
 @Composable
-private fun MapView(cameraPositionState: CameraPositionState) { // 1. PRIMA STANJE KAMERE
-    // NEMA VIŠE KREIRANJA STANJA OVDE
-
+private fun MapView(
+    cameraPositionState: CameraPositionState,
+    playlists: List<Playlist>,
+    nearbyPlaylistIds: Set<String>
+) {
     val context = LocalContext.current
     val mapProperties by remember {
         mutableStateOf(
@@ -119,8 +127,25 @@ private fun MapView(cameraPositionState: CameraPositionState) { // 1. PRIMA STAN
 
     GoogleMap(
         modifier = Modifier.fillMaxSize(),
-        cameraPositionState = cameraPositionState, // 2. KORISTI PROSLEĐENO STANJE
+        cameraPositionState = cameraPositionState,
         properties = mapProperties,
         uiSettings = mapUiSettings
-    )
+    ) {
+        playlists.forEach { playlist ->
+            val location = playlist.location
+            val isNearby = nearbyPlaylistIds.contains(playlist.id)
+            val iconColor = if (isNearby) {
+                BitmapDescriptorFactory.HUE_VIOLET
+            } else {
+                BitmapDescriptorFactory.HUE_AZURE
+            }
+
+            Marker(
+                state = MarkerState(position = LatLng(location.latitude, location.longitude)),
+                title = playlist.name,
+                snippet = playlist.description,
+                icon = BitmapDescriptorFactory.defaultMarker(iconColor)
+            )
+        }
+    }
 }
