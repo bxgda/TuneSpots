@@ -1,38 +1,42 @@
 package com.bogda.tunespots.presentation.ui.screens.playlists
 
+import android.content.Context
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.bogda.tunespots.BuildConfig
 import com.bogda.tunespots.R
 import com.bogda.tunespots.data.model.Track
-import com.bogda.tunespots.presentation.ui.viewmodels.main.MapViewModel
+import com.bogda.tunespots.presentation.ui.components.ImageSourceDialog
 import com.bogda.tunespots.presentation.ui.viewmodels.playlists.AddPlaylistViewModel
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddPlaylistScreen(
-    mapViewModel: MapViewModel,
     viewModel: AddPlaylistViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit
 ) {
@@ -42,12 +46,45 @@ fun AddPlaylistScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val isAddingPlaylist by viewModel.isAddingPlaylist.collectAsState()
     val playlistAdded by viewModel.playlistAdded.collectAsState()
+    val imageUri by viewModel.playlistImageUri
+
+    var showImageSourceDialog by remember { mutableStateOf(false) }
+    var tempCameraUri by remember { mutableStateOf<Uri?>(null) }
+    val context = LocalContext.current
+
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        viewModel.playlistImageUri.value = uri
+    }
+
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success: Boolean ->
+        if (success) {
+            viewModel.playlistImageUri.value = tempCameraUri
+        }
+    }
 
     LaunchedEffect(playlistAdded) {
         if (playlistAdded) {
             onNavigateBack()
             viewModel.onPlaylistAddedHandled()
         }
+    }
+
+    if (showImageSourceDialog) {
+        ImageSourceDialog(
+            onDismissRequest = { showImageSourceDialog = false },
+            onTakePhoto = {
+                val newUri = createImageUri(context)
+                tempCameraUri = newUri
+                cameraLauncher.launch(newUri)
+            },
+            onChooseFromGallery = {
+                galleryLauncher.launch("image/*")
+            }
+        )
     }
 
     val genres = listOf("Pop", "Rock", "Hip-Hop", "Electronic", "Jazz", "Classical", "Folk")
@@ -64,6 +101,32 @@ fun AddPlaylistScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            Box(
+                modifier = Modifier
+                    .size(150.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.secondaryContainer)
+                    .clickable { showImageSourceDialog = true },
+                contentAlignment = Alignment.Center
+            ) {
+                if (imageUri != null) {
+                    AsyncImage(
+                        model = imageUri,
+                        contentDescription = "Playlist image",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.AddAPhoto,
+                        contentDescription = "Add playlist image",
+                        modifier = Modifier.size(48.dp),
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+
             OutlinedTextField(
                 value = viewModel.playlistName.value,
                 onValueChange = { viewModel.playlistName.value = it },
@@ -140,9 +203,8 @@ fun AddPlaylistScreen(
             }
 
             Button(
-                onClick = { viewModel.addPlaylist() }, // Poziv bez parametara
+                onClick = { viewModel.addPlaylist() },
                 modifier = Modifier.fillMaxWidth(),
-                // Gumb je omogućen čim su osnovni uslovi ispunjeni
                 enabled = viewModel.playlistName.value.isNotBlank() && selectedTracks.isNotEmpty() && !isAddingPlaylist
             ) {
                 if (isAddingPlaylist) {
@@ -172,7 +234,7 @@ fun TrackItem(
                     .data(track.coverArtUrl)
                     .crossfade(true)
                     .build(),
-                placeholder = painterResource(R.drawable.ic_music_placeholder), 
+                placeholder = painterResource(R.drawable.ic_music_placeholder),
                 error = painterResource(R.drawable.ic_music_placeholder),
                 contentDescription = "Cover for ${track.title}",
                 contentScale = ContentScale.Crop,
@@ -187,5 +249,18 @@ fun TrackItem(
                 )
             }
         }
+    )
+}
+
+private fun createImageUri(context: Context): Uri {
+    val imageFile = File.createTempFile(
+        "JPEG_${System.currentTimeMillis()}_",
+        ".jpg",
+        context.cacheDir
+    )
+    return FileProvider.getUriForFile(
+        context,
+        "${BuildConfig.APPLICATION_ID}.provider",
+        imageFile
     )
 }

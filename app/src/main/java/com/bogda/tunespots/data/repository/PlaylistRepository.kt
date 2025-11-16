@@ -1,5 +1,6 @@
 package com.bogda.tunespots.data.repository
 
+import android.net.Uri
 import com.bogda.tunespots.domain.model.Playlist
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
@@ -8,7 +9,9 @@ import javax.inject.Singleton
 
 @Singleton
 class PlaylistRepository @Inject constructor(
-    private val firestore: FirebaseFirestore
+    private val firestore: FirebaseFirestore,
+    private val storageRepository: StorageRepository,
+    private val authRepository: AuthRepository
 ) {
     private val playlistCollection = firestore.collection("playlists")
 
@@ -26,5 +29,10 @@ class PlaylistRepository @Inject constructor(
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    suspend fun uploadPlaylistImage(imageUri: Uri): String? {
+        val userId = authRepository.getCurrentUserId() ?: return null
+        return storageRepository.uploadPlaylistImage(imageUri, userId).getOrNull()
     }
 }

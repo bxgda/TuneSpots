@@ -15,8 +15,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AddAPhoto
-import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -33,6 +31,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.bogda.tunespots.BuildConfig
 import com.bogda.tunespots.presentation.auth.RegisterViewModel
+import com.bogda.tunespots.presentation.ui.components.ImageSourceDialog
 import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -87,37 +86,16 @@ fun RegisterScreen(
         }
     }
 
-    // Dialog to choose between Camera and Gallery
     if (showImageSourceDialog) {
-        AlertDialog(
+        ImageSourceDialog(
             onDismissRequest = { showImageSourceDialog = false },
-            title = { Text("Choose Image Source") },
-            text = {
-                Column {
-                    ListItem(
-                        headlineContent = { Text("Take Photo") },
-                        leadingContent = { Icon(Icons.Default.CameraAlt, contentDescription = null) },
-                        modifier = Modifier.clickable {
-                            showImageSourceDialog = false
-                            val newUri = createImageUri(context)
-                            tempCameraUri = newUri
-                            cameraLauncher.launch(newUri)
-                        }
-                    )
-                    ListItem(
-                        headlineContent = { Text("Choose from Gallery") },
-                        leadingContent = { Icon(Icons.Default.PhotoLibrary, contentDescription = null) },
-                        modifier = Modifier.clickable {
-                            showImageSourceDialog = false
-                            galleryLauncher.launch("image/*")
-                        }
-                    )
-                }
+            onTakePhoto = {
+                val newUri = createImageUri(context)
+                tempCameraUri = newUri
+                cameraLauncher.launch(newUri)
             },
-            confirmButton = {
-                TextButton(onClick = { showImageSourceDialog = false }) {
-                    Text("Cancel")
-                }
+            onChooseFromGallery = {
+                galleryLauncher.launch("image/*")
             }
         )
     }

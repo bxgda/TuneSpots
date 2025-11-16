@@ -1,5 +1,6 @@
 package com.bogda.tunespots.presentation.ui.viewmodels.playlists
 
+import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -8,6 +9,7 @@ import com.bogda.tunespots.data.model.Track
 import com.bogda.tunespots.data.repository.AuthRepository
 import com.bogda.tunespots.data.repository.PlaylistRepository
 import com.bogda.tunespots.data.repository.SpotifyRepository
+import com.bogda.tunespots.data.repository.UserRepository
 import com.bogda.tunespots.data.services.LocationService
 import com.bogda.tunespots.domain.model.Playlist
 import com.google.firebase.Timestamp
@@ -26,13 +28,16 @@ class AddPlaylistViewModel @Inject constructor(
     private val spotifyRepository: SpotifyRepository,
     private val playlistRepository: PlaylistRepository,
     private val authRepository: AuthRepository,
-    private val locationService: LocationService
+    private val userRepository: UserRepository,
+    private val locationService: LocationService,
 ) : ViewModel() {
 
     // Stanja za UI
     val playlistName = mutableStateOf("")
     val playlistDescription = mutableStateOf("")
     val selectedGenre = mutableStateOf("Pop")
+    val playlistImageUri = mutableStateOf<Uri?>(null)
+
 
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
@@ -91,11 +96,19 @@ class AddPlaylistViewModel @Inject constructor(
 
             _isAddingPlaylist.value = true
             try {
-                val currentUser = authRepository.getCurrentUserId() ?: throw IllegalStateException("User not logged in")
-                Log.d("AddPlaylistVM", "Waiting for location...")
-                val currentLocation = locationService.getCurrentLocation().first() 
-                Log.d("AddPlaylistVM", "Location received: $currentLocation")
+                // Korak 1: Pripremi sve podatke
+                val currentUser = authRepository.getCurrentUserId()
+                    ?: throw IllegalStateException("User not logged in")
+                val currentLocation = locationService.getCurrentLocation().first()
+                val pointsToAdd = selectedTracks.value.size.toLong()
 
+                // Korak 2: Uploaduj sliku (ako postoji)
+                // Ova operacija se izvršava i njen rezultat se čeka (await)
+                val imageUrl: String? = playlistImageUri.value?.let { uri ->
+                    playlistRepository.uploadPlaylistImage(uri) // Pretpostavka: ovo je suspend funkcija
+                }
+
+                // Korak 3: Kreiraj objekat plejliste
                 val newPlaylist = Playlist(
                     name = playlistName.value.trim(),
                     description = playlistDescription.value.trim(),
@@ -104,21 +117,27 @@ class AddPlaylistViewModel @Inject constructor(
                     location = currentLocation,
                     ownerId = currentUser,
                     createdAt = Timestamp.now(),
-                    lastUpdatedAt = Timestamp.now()
+                    lastUpdatedAt = Timestamp.now(),
+                    coverImageUrl = imageUrl
                 )
 
-                Log.d("AddPlaylistVM", "Sending playlist to Firestore: $newPlaylist")
-                playlistRepository.addPlaylist(newPlaylist)
-                    .onSuccess {
-                        Log.d("AddPlaylistVM", "Playlist added successfully.")
-                        _playlistAdded.value = true
-                    }
-                    .onFailure { exception ->
-                        Log.e("AddPlaylistVM", "Error adding playlist.", exception)
-                    }
+                // Korak 4: Dodaj plejlistu
+                // Izvršava se i čeka završetak
+                playlistRepository.addPlaylist(newPlaylist) // Pretpostavka: ovo je suspend funkcija
+
+                // Korak 5: Dodaj poene korisniku
+                // Izvršava se i čeka završetak
+                userRepository.addPoints(currentUser, pointsToAdd) // Pretpostavka: ovo je suspend funkcija
+
+                // Ako su sve prethodne operacije uspele, dolazimo do ovde
+                _playlistAdded.value = true
+
             } catch (e: Exception) {
-                Log.e("AddPlaylistVM", "Error getting location or user.", e)
+                // Bilo koja greška iz `try` bloka će biti uhvaćena ovde
+                Log.e("AddPlaylistVM", "Failed to add playlist or points.", e)
+                // Ovde možete dodati logiku za prikaz greške korisniku
             } finally {
+                // Ovaj blok se izvršava uvek, bilo da je operacija uspela ili ne
                 _isAddingPlaylist.value = false
             }
         }

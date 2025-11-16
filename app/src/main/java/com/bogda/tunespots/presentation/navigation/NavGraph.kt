@@ -10,7 +10,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.remember
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
@@ -27,7 +26,6 @@ import com.bogda.tunespots.presentation.ui.screens.main.ProfileScreen
 import com.bogda.tunespots.presentation.ui.screens.main.SearchScreen
 import com.bogda.tunespots.presentation.ui.screens.playlists.AddPlaylistScreen
 import com.bogda.tunespots.presentation.ui.viewmodels.main.MapViewModel
-import com.bogda.tunespots.presentation.ui.viewmodels.playlists.AddPlaylistViewModel
 import com.google.firebase.auth.FirebaseAuth
 
 // Definišemo SVE rute na jednom mestu radi preglednosti i sigurnosti
@@ -166,18 +164,7 @@ fun AppNavHost() {
 
             // --- Ekran za dodavanje plejliste (ne dijalog) ---
             composable(route = Routes.ADD_PLAYLIST_DIALOG) { backStackEntry ->
-                val mapBackStackEntry = remember(backStackEntry) {
-                    appNavController.getBackStackEntry(Routes.MAP)
-                }
-
-                // Dobavi Hilt ViewModel koji je vezan za mapu
-                val mapViewModel: MapViewModel = hiltViewModel(mapBackStackEntry)
-
-                // AddPlaylistViewModel se više ne kreira ovde!
-                // val addPlaylistViewModel: AddPlaylistViewModel = hiltViewModel() // OBRISATI
-
                 AddPlaylistScreen(
-                    mapViewModel = mapViewModel, // Prosleđujemo samo MapViewModel
                     onNavigateBack = { appNavController.popBackStack() }
                 )
             }
