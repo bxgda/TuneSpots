@@ -1,6 +1,6 @@
 package com.bogda.tunespots.presentation.ui.screens.main
 
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -10,35 +10,25 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavDestination.Companion.hierarchy
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
+// OBAVEZNO DODAJTE OVAJ IMPORT
+import com.bogda.tunespots.presentation.navigation.Routes
 import com.bogda.tunespots.presentation.ui.components.BottomNavItem
 
 @Composable
-fun MainScaffold(onLogout: () -> Unit) {
-    val mainNavController = rememberNavController()
-
+fun MainScaffold(
+    mainNavController: NavHostController,
+    topBar: @Composable () -> Unit = {},
+    content: @Composable (paddingValues: PaddingValues) -> Unit
+) {
     Scaffold(
+        topBar = topBar,
         bottomBar = {
             BottomNavigationBar(navController = mainNavController)
         }
     ) { innerPadding ->
-        // NavHost za ekrane unutar glavnog dela aplikacije
-        NavHost(
-            navController = mainNavController,
-            startDestination = BottomNavItem.Map.route,
-            modifier = Modifier.padding(innerPadding)
-        ) {
-            composable(BottomNavItem.Map.route) { MapScreen() }
-            composable(BottomNavItem.Search.route) { SearchScreen() }
-            composable(BottomNavItem.Leaderboard.route) { LeaderboardScreen() }
-            composable(BottomNavItem.Playlists.route) { PlaylistsScreen() }
-            composable(BottomNavItem.Profile.route) { ProfileScreen(onLogout = onLogout) }
-        }
+        content(innerPadding)
     }
 }
 
@@ -57,19 +47,22 @@ private fun BottomNavigationBar(navController: NavHostController) {
         val currentDestination = navBackStackEntry?.destination
 
         items.forEach { screen ->
+            val isSelected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
+
             NavigationBarItem(
                 icon = { Icon(screen.icon, contentDescription = screen.title) },
                 label = { Text(screen.title) },
-                selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
+                selected = isSelected,
                 onClick = {
+                    // Proverite da li su rute usklađene. Ako je screen.route "search_screen",
+                    // a u Routes.kt je "search", aplikacija će pući.
+                    // Osigurajte da BottomNavItem koristi rute iz Routes objekta.
                     navController.navigate(screen.route) {
-                        // Vraća na početnu destinaciju (Map) da ne bi gomilao stek
-                        popUpTo(navController.graph.findStartDestination().id) {
+                        // ISPRAVKA: Pop-up do HOME_GRAPH, ne do početka celog grafa
+                        popUpTo(Routes.HOME_GRAPH) {
                             saveState = true
                         }
-                        // Izbegava kreiranje nove destinacije ako je ista ponovo izabrana
                         launchSingleTop = true
-                        // Vraća stanje ekrana kada se ponovo izabere
                         restoreState = true
                     }
                 }

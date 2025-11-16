@@ -2,40 +2,38 @@ package com.bogda.tunespots.data.services
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.os.Looper
-import com.google.android.gms.location.*
-import com.google.android.gms.maps.model.LatLng
-import kotlinx.coroutines.channels.awaitClose
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
+import com.google.android.gms.tasks.CancellationTokenSource
+import com.google.firebase.firestore.GeoPoint
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class LocationService @Inject constructor(
-    private val context: Context,
-    private val locationClient: FusedLocationProviderClient
+    @ApplicationContext private val context: Context
 ) {
-    @SuppressLint("MissingPermission") // Dozvola se proverava na UI nivou
-    fun requestLocationUpdates(): Flow<LatLng> = callbackFlow {
-        val request = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 10000L) // Svakih 10 sekundi
-            .setMinUpdateIntervalMillis(5000L) // Najmanji interval 5 sekundi
-            .build()
+    private val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
 
-        val locationCallback = object : LocationCallback() {
-            override fun onLocationResult(locationResult: LocationResult) {
-                locationResult.locations.lastOrNull()?.let {
-                    trySend(LatLng(it.latitude, it.longitude))
-                }
-            }
+    @SuppressLint("MissingPermission")
+    fun getCurrentLocation(): Flow<GeoPoint> = flow {
+        // U stvarnoj aplikaciji, ovde treba rukovati dozvolama
+        val location = fusedLocationClient.getCurrentLocation(
+            Priority.PRIORITY_HIGH_ACCURACY,
+            CancellationTokenSource().token
+        ).await()
+
+        if (location != null) {
+            emit(GeoPoint(location.latitude, location.longitude))
+        } else {
+            // Vrati zadanu lokaciju ili baci iznimku ako lokacija nije dostupna
+            emit(GeoPoint(0.0, 0.0)) 
         }
-
-        locationClient.requestLocationUpdates(
-            request,
-            locationCallback,
-            Looper.getMainLooper()
-        )
-
-        awaitClose {
-            locationClient.removeLocationUpdates(locationCallback)
-        }
-    }
+    }.flowOn(Dispatchers.IO)
 }

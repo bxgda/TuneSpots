@@ -16,7 +16,7 @@ data class Playlist(
 
     val genre: String = "",
 
-    val songIds: List<String> = emptyList(), // spotify id-jevi pesama u plejlisti
+    val tracks: List<String> = emptyList(), // spotify id-jevi pesama u plejlisti
 
     val ownerId: String = "",
     val contributorIds: List<String> = emptyList()

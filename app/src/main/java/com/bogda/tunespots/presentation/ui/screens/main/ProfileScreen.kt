@@ -11,7 +11,7 @@ import com.bogda.tunespots.presentation.ui.viewmodels.main.ProfileViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(onLogout: () -> Unit, viewModel: ProfileViewModel = hiltViewModel()) {
+fun ProfileScreen(onLogout: () -> Unit, viewModel: ProfileViewModel = hiltViewModel(), modifier: Modifier = Modifier) {
     Scaffold(topBar = { TopAppBar(title = { Text("Profile") }) }) { padding ->
         Column(
             modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),

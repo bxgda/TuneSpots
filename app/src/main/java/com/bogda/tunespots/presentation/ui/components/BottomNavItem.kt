@@ -13,9 +13,9 @@ sealed class BottomNavItem(
     val icon: ImageVector,
     val route: String
 ) {
-    object Map : BottomNavItem("Map", Icons.Default.Map, "map_screen")
-    object Search : BottomNavItem("Search", Icons.Default.Search, "search_screen")
-    object Leaderboard : BottomNavItem("Top DJs", Icons.Default.Leaderboard, "leaderboard_screen")
-    object Playlists : BottomNavItem("Playlists", Icons.AutoMirrored.Filled.List, "playlists_screen")
-    object Profile : BottomNavItem("Profile", Icons.Default.AccountCircle, "profile_screen")
+    object Map : BottomNavItem("Map", Icons.Default.Map, "map")
+    object Search : BottomNavItem("Search", Icons.Default.Search, "search")
+    object Leaderboard : BottomNavItem("Top DJs", Icons.Default.Leaderboard, "leaderboard")
+    object Playlists : BottomNavItem("Playlists", Icons.AutoMirrored.Filled.List, "playlists")
+    object Profile : BottomNavItem("Profile", Icons.Default.AccountCircle, "profile")
 }

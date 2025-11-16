@@ -62,6 +62,6 @@ object AppModule {
         @ApplicationContext context: Context,
         client: FusedLocationProviderClient
     ): LocationService {
-        return LocationService(context, client)
+        return LocationService(context)
     }
 }
