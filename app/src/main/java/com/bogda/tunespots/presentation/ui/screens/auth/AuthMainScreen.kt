@@ -22,14 +22,14 @@ fun AuthMainScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Dobrodošli u TuneSpots!")
+            Text("Welcome to TuneSpots!")
             Spacer(modifier = Modifier.height(32.dp))
             Button(onClick = onLoginClick) {
-                Text("Prijavi se")
+                Text("Login")
             }
             Spacer(modifier = Modifier.height(16.dp))
             Button(onClick = onRegisterClick) {
-                Text("Registruj se")
+                Text("Register")
             }
         }
     }

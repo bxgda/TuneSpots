@@ -10,7 +10,7 @@ import com.bogda.tunespots.presentation.auth.RegisterScreen
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.bogda.tunespots.presentation.auth.LoginViewModel
 import com.bogda.tunespots.presentation.auth.RegisterViewModel
-import com.bogda.tunespots.presentation.main.MainScreen
+import com.bogda.tunespots.presentation.ui.screens.main.MainScaffold
 import com.google.firebase.auth.FirebaseAuth
 
 // Definišemo rute kao konstante da bismo izbegli greške u kucanju
@@ -18,7 +18,7 @@ object Routes {
     const val AUTH_MAIN = "auth_main"
     const val LOGIN = "login"
     const val REGISTER = "register"
-    const val HOME = "home" // Ruta za glavni ekran nakon prijave
+    const val HOME = "home_scaffold" // Ruta za glavni ekran nakon prijave
 }
 
 @Composable
@@ -34,7 +34,7 @@ fun AppNavHost() {
 
     NavHost(
         navController = navController,
-        startDestination = Routes.AUTH_MAIN // Početni ekran je naš novi AuthMainScreen
+        startDestination = startDestination // Početni ekran je naš novi AuthMainScreen
     ) {
         // --- Ekrani za Autentifikaciju ---
 
@@ -78,7 +78,7 @@ fun AppNavHost() {
         // --- Glavni ekran aplikacije (nakon prijave) ---
 
         composable(Routes.HOME) {
-            MainScreen(
+            MainScaffold( // <-- ZAMENI MainScreen sa MainScaffold
                 onLogout = {
                     // Očisti ceo backstack i idi na AUTH_MAIN
                     navController.navigate(Routes.AUTH_MAIN) {
