@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "392520349340",
+    "project_id": "tunespots-617f2",
+    "storage_bucket": "tunespots-617f2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:392520349340:android:c601d13a8f5f64fc4bdf59",
+        "android_client_info": {
+          "package_name": "com.bogda.tunespots"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCYekWYbFNHu9fcMMIFLazYlw_UQ7FqUhI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
