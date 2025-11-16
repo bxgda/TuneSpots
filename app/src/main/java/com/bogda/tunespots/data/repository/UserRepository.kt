@@ -3,6 +3,7 @@ package com.bogda.tunespots.data.repository
 import com.bogda.tunespots.domain.model.User
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -50,6 +51,20 @@ class UserRepository @Inject constructor(
                 .update("points", FieldValue.increment(points))
                 .await()
             Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+
+    suspend fun getTopDjs(): Result<List<User>> {
+        return try {
+            val usersCollection = firestore.collection("users")
+                .orderBy("points", Query.Direction.DESCENDING)
+                .get()
+                .await()
+            val users = usersCollection.toObjects(User::class.java)
+            Result.success(users)
         } catch (e: Exception) {
             Result.failure(e)
         }
