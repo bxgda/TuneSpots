@@ -1,6 +1,10 @@
 package com.bogda.tunespots.presentation.auth
 
+import android.content.Context
+import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -11,20 +15,25 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AddAPhoto
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
+import com.bogda.tunespots.BuildConfig
 import com.bogda.tunespots.presentation.auth.RegisterViewModel
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,19 +42,36 @@ fun RegisterScreen(
     onRegisterSuccess: () -> Unit,
     viewModel: RegisterViewModel = hiltViewModel()
 ) {
-    // State for all form fields
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
     var firstName by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }
     var phoneNumber by remember { mutableStateOf("") }
-    // var imageUri by remember { mutableStateOf<Uri?>(null) } // For when you implement image picking
+    var imageUri by remember { mutableStateOf<Uri?>(null) }
+    var tempCameraUri by remember { mutableStateOf<Uri?>(null) }
+
+    var showImageSourceDialog by remember { mutableStateOf(false) }
 
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
 
-    // Listen for state changes from the ViewModel
+    // Launcher for picking an image from the gallery
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        imageUri = uri
+    }
+
+    // Launcher for taking a picture with the camera
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success: Boolean ->
+        if (success) {
+            imageUri = tempCameraUri // Update the URI to trigger recomposition
+        }
+    }
+
     LaunchedEffect(uiState) {
         when (val state = uiState) {
             is AuthUiState.Success -> {
@@ -59,6 +85,41 @@ fun RegisterScreen(
             }
             else -> {}
         }
+    }
+
+    // Dialog to choose between Camera and Gallery
+    if (showImageSourceDialog) {
+        AlertDialog(
+            onDismissRequest = { showImageSourceDialog = false },
+            title = { Text("Choose Image Source") },
+            text = {
+                Column {
+                    ListItem(
+                        headlineContent = { Text("Take Photo") },
+                        leadingContent = { Icon(Icons.Default.CameraAlt, contentDescription = null) },
+                        modifier = Modifier.clickable {
+                            showImageSourceDialog = false
+                            val newUri = createImageUri(context)
+                            tempCameraUri = newUri
+                            cameraLauncher.launch(newUri)
+                        }
+                    )
+                    ListItem(
+                        headlineContent = { Text("Choose from Gallery") },
+                        leadingContent = { Icon(Icons.Default.PhotoLibrary, contentDescription = null) },
+                        modifier = Modifier.clickable {
+                            showImageSourceDialog = false
+                            galleryLauncher.launch("image/*")
+                        }
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showImageSourceDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 
     Scaffold(
@@ -89,18 +150,24 @@ fun RegisterScreen(
                     .size(120.dp)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.secondaryContainer)
-                    .clickable {
-                        // TODO: Launch image picker (from gallery or camera)
-                    },
+                    .clickable { showImageSourceDialog = true }, // Show the dialog on click
                 contentAlignment = Alignment.Center
             ) {
-                // We'll show the selected image here later. For now, just an icon.
-                Icon(
-                    imageVector = Icons.Default.AddAPhoto,
-                    contentDescription = "Add profile picture",
-                    modifier = Modifier.size(48.dp),
-                    tint = MaterialTheme.colorScheme.onSecondaryContainer
-                )
+                if (imageUri != null) {
+                    AsyncImage(
+                        model = imageUri,
+                        contentDescription = "Profile picture",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.AddAPhoto,
+                        contentDescription = "Add profile picture",
+                        modifier = Modifier.size(48.dp),
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                }
             }
 
             Spacer(Modifier.height(24.dp))
@@ -150,7 +217,7 @@ fun RegisterScreen(
             FilledTonalButton(
                 onClick = {
                     viewModel.registerUser(
-                        email, password, username, firstName, lastName, phoneNumber, imageUri = null // Pass the actual URI later
+                        email, password, username, firstName, lastName, phoneNumber, imageUri = imageUri
                     )
                 },
                 modifier = Modifier.fillMaxWidth(),
@@ -165,4 +232,17 @@ fun RegisterScreen(
             Spacer(Modifier.height(24.dp))
         }
     }
+}
+
+private fun createImageUri(context: Context): Uri {
+    val imageFile = File.createTempFile(
+        "JPEG_${System.currentTimeMillis()}_",
+        ".jpg",
+        context.cacheDir
+    )
+    return FileProvider.getUriForFile(
+        context,
+        "${BuildConfig.APPLICATION_ID}.provider", 
+        imageFile
+    )
 }
