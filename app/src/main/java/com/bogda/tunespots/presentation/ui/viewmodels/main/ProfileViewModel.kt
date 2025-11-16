@@ -8,7 +8,9 @@ import com.bogda.tunespots.domain.model.User
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
 
 @HiltViewModel
@@ -25,13 +27,14 @@ class ProfileViewModel @Inject constructor(
     }
 
     private fun loadUserProfile() {
-        viewModelScope.launch {
-            val result = userRepository.getUser()
-            _userState.value = result.fold(
-                onSuccess = { UserState.Loaded(it) },
-                onFailure = { UserState.Error(it.message ?: "Failed to load user profile.") }
-            )
-        }
+        userRepository.getUser()
+            .onEach { user ->
+                _userState.value = UserState.Loaded(user)
+            }
+            .catch { e ->
+                _userState.value = UserState.Error(e.message ?: "Failed to load user profile.")
+            }
+            .launchIn(viewModelScope)
     }
 
     fun logout() {

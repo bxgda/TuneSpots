@@ -72,9 +72,6 @@ fun MapScreen(
     ) {
         when {
             locationPermissions.allPermissionsGranted -> {
-                LaunchedEffect(Unit) {
-                    viewModel.startLocationUpdates()
-                }
                 MapView(
                     cameraPositionState = viewModel.cameraPositionState,
                     playlists = uiState.playlists,

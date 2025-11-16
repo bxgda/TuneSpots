@@ -7,10 +7,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bogda.tunespots.data.model.Track
 import com.bogda.tunespots.data.repository.AuthRepository
+import com.bogda.tunespots.data.repository.LocationRepository
 import com.bogda.tunespots.data.repository.PlaylistRepository
 import com.bogda.tunespots.data.repository.SpotifyRepository
 import com.bogda.tunespots.data.repository.UserRepository
-import com.bogda.tunespots.data.services.LocationService
 import com.bogda.tunespots.domain.model.Playlist
 import com.google.firebase.Timestamp
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,7 +19,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -29,7 +28,7 @@ class AddPlaylistViewModel @Inject constructor(
     private val playlistRepository: PlaylistRepository,
     private val authRepository: AuthRepository,
     private val userRepository: UserRepository,
-    private val locationService: LocationService,
+    private val locationRepository: LocationRepository,
 ) : ViewModel() {
 
     // Stanja za UI
@@ -96,19 +95,16 @@ class AddPlaylistViewModel @Inject constructor(
 
             _isAddingPlaylist.value = true
             try {
-                // Korak 1: Pripremi sve podatke
                 val currentUser = authRepository.getCurrentUserId()
                     ?: throw IllegalStateException("User not logged in")
-                val currentLocation = locationService.getCurrentLocation().first()
+                val currentLocation = locationRepository.lastKnownLocation.value
+                    ?: throw IllegalStateException("Location not available")
                 val pointsToAdd = selectedTracks.value.size.toLong()
 
-                // Korak 2: Uploaduj sliku (ako postoji)
-                // Ova operacija se izvršava i njen rezultat se čeka (await)
                 val imageUrl: String? = playlistImageUri.value?.let { uri ->
-                    playlistRepository.uploadPlaylistImage(uri) // Pretpostavka: ovo je suspend funkcija
+                    playlistRepository.uploadPlaylistImage(uri)
                 }
 
-                // Korak 3: Kreiraj objekat plejliste
                 val newPlaylist = Playlist(
                     name = playlistName.value.trim(),
                     description = playlistDescription.value.trim(),
@@ -121,23 +117,15 @@ class AddPlaylistViewModel @Inject constructor(
                     coverImageUrl = imageUrl
                 )
 
-                // Korak 4: Dodaj plejlistu
-                // Izvršava se i čeka završetak
-                playlistRepository.addPlaylist(newPlaylist) // Pretpostavka: ovo je suspend funkcija
+                playlistRepository.addPlaylist(newPlaylist)
 
-                // Korak 5: Dodaj poene korisniku
-                // Izvršava se i čeka završetak
-                userRepository.addPoints(currentUser, pointsToAdd) // Pretpostavka: ovo je suspend funkcija
+                userRepository.addPoints(currentUser, pointsToAdd)
 
-                // Ako su sve prethodne operacije uspele, dolazimo do ovde
                 _playlistAdded.value = true
 
             } catch (e: Exception) {
-                // Bilo koja greška iz `try` bloka će biti uhvaćena ovde
                 Log.e("AddPlaylistVM", "Failed to add playlist or points.", e)
-                // Ovde možete dodati logiku za prikaz greške korisniku
             } finally {
-                // Ovaj blok se izvršava uvek, bilo da je operacija uspela ili ne
                 _isAddingPlaylist.value = false
             }
         }

@@ -3,6 +3,9 @@ package com.bogda.tunespots.data.repository
 import com.bogda.tunespots.domain.model.User
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -13,15 +16,32 @@ class UserRepository @Inject constructor(
     private val authRepository: AuthRepository
 ) {
 
-    suspend fun getUser(): Result<User> {
-        return try {
-            val userId = authRepository.getCurrentUserId() ?: throw Exception("User not logged in.")
-            val userDoc = firestore.collection("users").document(userId).get().await()
-            val user = userDoc.toObject(User::class.java) ?: throw Exception("User data not found.")
-            Result.success(user)
-        } catch (e: Exception) {
-            Result.failure(e)
+    fun getUser(): Flow<User> = callbackFlow {
+        val userId = authRepository.getCurrentUserId()
+        if (userId == null) {
+            close(Exception("User not logged in."))
+            return@callbackFlow
         }
+
+        val userDocRef = firestore.collection("users").document(userId)
+        val listener = userDocRef.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                close(error)
+                return@addSnapshotListener
+            }
+
+            if (snapshot != null && snapshot.exists()) {
+                val user = snapshot.toObject(User::class.java)
+                if (user != null) {
+                    trySend(user)
+                } else {
+                    close(Exception("Failed to parse user data."))
+                }
+            } else {
+                close(Exception("User data not found."))
+            }
+        }
+        awaitClose { listener.remove() }
     }
 
     suspend fun addPoints(userId: String, points: Long): Result<Unit> {

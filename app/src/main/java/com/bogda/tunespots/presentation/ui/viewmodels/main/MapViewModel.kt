@@ -11,7 +11,6 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.CameraPositionState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class MapUiState(
@@ -26,8 +25,28 @@ class MapViewModel @Inject constructor(
     private val playlistRepository: PlaylistRepository
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(MapUiState())
-    val uiState: StateFlow<MapUiState> = _uiState.asStateFlow()
+    private val _playlists = playlistRepository.getAllPlaylists()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    private val _lastKnownLocation = locationService.getLocationUpdates()
+        .map { geoPoint -> LatLng(geoPoint.latitude, geoPoint.longitude) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    val uiState: StateFlow<MapUiState> = combine(
+        _playlists,
+        _lastKnownLocation
+    ) { playlists, location ->
+        val nearbyIds = calculateNearbyPlaylists(location, playlists)
+        MapUiState(
+            lastKnownLocation = location,
+            playlists = playlists,
+            nearbyPlaylistIds = nearbyIds
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = MapUiState()
+    )
 
     val cameraPositionState = CameraPositionState(
         position = CameraPosition.fromLatLngZoom(
@@ -35,10 +54,6 @@ class MapViewModel @Inject constructor(
             13f
         )
     )
-
-    init {
-        fetchPlaylists()
-    }
 
     private fun calculateNearbyPlaylists(
         userLocation: LatLng?,
@@ -57,28 +72,7 @@ class MapViewModel @Inject constructor(
                 longitude = playlist.location.longitude
             }
             val distance = userAndroidLocation.distanceTo(playlistAndroidLocation)
-            distance <= 20
+            distance <= 80
         }.map { it.id }.toSet()
-    }
-
-    private fun fetchPlaylists() {
-        viewModelScope.launch {
-            playlistRepository.getAllPlaylists().collect { playlists ->
-                val nearbyIds = calculateNearbyPlaylists(_uiState.value.lastKnownLocation, playlists)
-                _uiState.update { it.copy(playlists = playlists, nearbyPlaylistIds = nearbyIds) }
-            }
-        }
-    }
-
-    fun startLocationUpdates() {
-        locationService.getCurrentLocation()
-            .onEach { newLocationGeoPoint ->
-                newLocationGeoPoint?.let { geoPoint ->
-                    val newLatLng = LatLng(geoPoint.latitude, geoPoint.longitude)
-                    val nearbyIds = calculateNearbyPlaylists(newLatLng, _uiState.value.playlists)
-                    _uiState.update { it.copy(lastKnownLocation = newLatLng, nearbyPlaylistIds = nearbyIds) }
-                }
-            }
-            .launchIn(viewModelScope)
     }
 }
