@@ -1,6 +1,8 @@
 package com.bogda.tunespots.presentation.ui.screens.playlists
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -29,9 +31,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.bogda.tunespots.R
 import com.bogda.tunespots.presentation.ui.components.TrackItem
 import com.bogda.tunespots.presentation.ui.viewmodels.playlists.PlaylistState
 import com.bogda.tunespots.presentation.ui.viewmodels.playlists.PlaylistViewModel
@@ -71,16 +75,18 @@ fun PlaylistScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(paddingValues)
-                        .padding(16.dp)
+                        .padding(horizontal = 16.dp)
                 ) {
                     item {
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
                         ) {
                             AsyncImage(
                                 model = state.playlist.coverImageUrl,
                                 contentDescription = "Playlist image",
+                                placeholder = painterResource(id = R.drawable.ic_music_placeholder),
+                                error = painterResource(id = R.drawable.ic_music_placeholder),
                                 modifier = Modifier
                                     .size(200.dp)
                                     .clip(MaterialTheme.shapes.medium),
@@ -94,11 +100,13 @@ fun PlaylistScreen(
                                 AsyncImage(
                                     model = state.owner.profilePictureUrl,
                                     contentDescription = "Owner image",
+                                    placeholder = painterResource(id = R.drawable.ic_music_placeholder),
+                                    error = painterResource(id = R.drawable.ic_music_placeholder),
                                     modifier = Modifier
                                         .size(40.dp)
                                         .clip(CircleShape)
                                 )
-                                Text(" by ${state.owner.username}", style = MaterialTheme.typography.labelMedium)
+                                Text("Autor: ${state.owner.username}", style = MaterialTheme.typography.labelMedium)
                             }
                             Spacer(modifier = Modifier.height(16.dp))
                             if (state.contributors.isNotEmpty()) {
@@ -110,6 +118,8 @@ fun PlaylistScreen(
                                             AsyncImage(
                                                 model = contributor.profilePictureUrl,
                                                 contentDescription = contributor.username,
+                                                placeholder = painterResource(id = R.drawable.ic_music_placeholder),
+                                                error = painterResource(id = R.drawable.ic_music_placeholder),
                                                 modifier = Modifier
                                                     .size(40.dp)
                                                     .clip(CircleShape)
@@ -118,12 +128,25 @@ fun PlaylistScreen(
                                         }
                                     }
                                 }
-                                Spacer(modifier = Modifier.height(16.dp))
                             }
                         }
                     }
-                    items(state.tracks, key = { it.id }) {
-                        TrackItem(track = it, onToggleSelect = {})
+                    item {
+                        Column {
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text("Tracks:", style = MaterialTheme.typography.headlineMedium)
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
+                    }
+                    items(state.tracks, key = { it.id }) { track ->
+                        Box(
+                            modifier = Modifier
+                                .padding(vertical = 4.dp)
+                                .clip(MaterialTheme.shapes.medium)
+                                .border(1.dp, MaterialTheme.colorScheme.outline, MaterialTheme.shapes.medium)
+                        ) {
+                            TrackItem(track = track, onToggleSelect = {})
+                        }
                     }
                 }
             }
