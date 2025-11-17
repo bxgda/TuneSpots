@@ -58,4 +58,24 @@ class PlaylistRepository @Inject constructor(
         val userId = authRepository.getCurrentUserId() ?: return null
         return storageRepository.uploadPlaylistImage(imageUri, userId).getOrNull()
     }
+
+    suspend fun getPlaylists(userId: String): Result<Pair<List<Playlist>, List<Playlist>>> {
+        return try {
+            val authoredPlaylists = firestore.collection("playlists")
+                .whereEqualTo("ownerId", userId)
+                .get()
+                .await()
+                .toObjects(Playlist::class.java)
+
+            val contributedPlaylists = firestore.collection("playlists")
+                .whereArrayContains("contributorIds", userId)
+                .get()
+                .await()
+                .toObjects(Playlist::class.java)
+
+            Result.success(Pair(authoredPlaylists, contributedPlaylists))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }
