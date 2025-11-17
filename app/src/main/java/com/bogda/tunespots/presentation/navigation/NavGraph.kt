@@ -132,7 +132,7 @@ fun AppNavHost() {
             }
             composable(Routes.PLAYLISTS) {
                 MainScaffoldWithContent(navController = appNavController) { modifier ->
-                    PlaylistsScreen(modifier = modifier)
+                    PlaylistsScreen(modifier = modifier, navController = appNavController)
                 }
             }
             composable(Routes.PROFILE) {

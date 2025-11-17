@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,13 +20,18 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.bogda.tunespots.domain.model.Playlist
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlaylistItem(
     playlist: Playlist,
     authorName: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
 ) {
-    Card(modifier = modifier.fillMaxWidth()) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        onClick = onClick
+    ) {
         Row {
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)

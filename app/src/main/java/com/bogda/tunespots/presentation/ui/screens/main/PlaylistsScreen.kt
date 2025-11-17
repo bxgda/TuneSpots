@@ -25,14 +25,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.bogda.tunespots.domain.model.Playlist
+import com.bogda.tunespots.presentation.navigation.Routes
 import com.bogda.tunespots.presentation.ui.components.PlaylistItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlaylistsScreen(
     modifier: Modifier = Modifier,
-    viewModel: PlaylistViewModel = hiltViewModel()
+    viewModel: PlaylistViewModel = hiltViewModel(),
+    navController: NavController
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showAuthored by remember { mutableStateOf(true) }
@@ -78,7 +81,8 @@ fun PlaylistsScreen(
                         PlaylistItem(
                             playlist = playlist,
                             authorName = authorName,
-                            modifier = Modifier.padding(16.dp)
+                            modifier = Modifier.padding(16.dp),
+                            onClick = { navController.navigate(Routes.playlistDetail(playlist.id)) }
                         )
                     }
                 }
