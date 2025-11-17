@@ -25,6 +25,7 @@ import com.bogda.tunespots.presentation.ui.screens.main.MainScaffold
 import com.bogda.tunespots.presentation.ui.screens.main.MapScreen
 import com.bogda.tunespots.presentation.ui.screens.main.PlaylistsScreen
 import com.bogda.tunespots.presentation.ui.screens.main.ProfileScreen
+import com.bogda.tunespots.presentation.ui.screens.main.PublicProfileScreen
 import com.bogda.tunespots.presentation.ui.screens.main.SearchScreen
 import com.bogda.tunespots.presentation.ui.screens.playlists.AddPlaylistScreen
 import com.bogda.tunespots.presentation.ui.screens.playlists.PlaylistScreen
@@ -45,8 +46,10 @@ object Routes {
     const val PROFILE = "profile"
     const val ADD_PLAYLIST_DIALOG = "add_playlist_dialog"
     const val PLAYLIST_DETAIL = "playlist/{playlistId}"
+    const val PUBLIC_PROFILE = "publicProfile/{userId}"
 
     fun playlistDetail(playlistId: String) = "playlist/$playlistId"
+    fun publicProfile(userId: String) = "publicProfile/$userId"
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -127,7 +130,7 @@ fun AppNavHost() {
             }
             composable(Routes.LEADERBOARD) {
                 MainScaffoldWithContent(navController = appNavController) { modifier ->
-                    LeaderboardScreen(modifier = modifier)
+                    LeaderboardScreen(modifier = modifier, navController = appNavController)
                 }
             }
             composable(Routes.PLAYLISTS) {
@@ -160,6 +163,16 @@ fun AppNavHost() {
             ) {
                 PlaylistScreen(
                     onNavigateBack = { appNavController.popBackStack() }
+                )
+            }
+
+            composable(
+                route = Routes.PUBLIC_PROFILE,
+                arguments = listOf(navArgument("userId") { type = NavType.StringType })
+            ) {
+                PublicProfileScreen(
+                    onNavigateBack = { appNavController.popBackStack() },
+                    navController = appNavController
                 )
             }
         }

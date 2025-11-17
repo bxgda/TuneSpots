@@ -10,13 +10,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import com.bogda.tunespots.presentation.navigation.Routes
 import com.bogda.tunespots.presentation.ui.components.TopDJList
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LeaderboardScreen(
     modifier: Modifier = Modifier, 
-    viewModel: LeaderboardViewModel = hiltViewModel()
+    viewModel: LeaderboardViewModel = hiltViewModel(),
+    navController: NavController
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -36,7 +39,10 @@ fun LeaderboardScreen(
             } else {
                 TopDJList(
                     djs = uiState.djs,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
+                    onItemClick = { dj ->
+                        navController.navigate(Routes.publicProfile(dj.id))
+                    }
                 )
             }
         }

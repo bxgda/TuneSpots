@@ -1,6 +1,7 @@
 package com.bogda.tunespots.presentation.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,19 +42,19 @@ data class DJ(
 )
 
 @Composable
-fun TopDJList(djs: List<DJ>, modifier: Modifier = Modifier) {
+fun TopDJList(djs: List<DJ>, modifier: Modifier = Modifier, onItemClick: (DJ) -> Unit) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         modifier = modifier.padding(8.dp)
     ) {
         itemsIndexed(djs) { index, dj ->
-            DJListItem(dj = dj, rank = index + 1)
+            DJListItem(dj = dj, rank = index + 1, onItemClick = { onItemClick(dj) })
         }
     }
 }
 
 @Composable
-fun DJListItem(dj: DJ, rank: Int) {
+fun DJListItem(dj: DJ, rank: Int, onItemClick: () -> Unit) {
     val gold = Color(0xFFFFD700)
     val silver = Color(0xFFC0C0C0)
     val bronze = Color(0xFFCD7F32)
@@ -70,6 +71,7 @@ fun DJListItem(dj: DJ, rank: Int) {
             .fillMaxWidth()
             .padding(8.dp)
             .aspectRatio(1f) // Make it square
+            .clickable(onClick = onItemClick)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             Column(
