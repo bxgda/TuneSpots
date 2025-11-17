@@ -112,7 +112,7 @@ fun DJListItem(dj: DJ, rank: Int, onItemClick: () -> Unit) {
                     textAlign = TextAlign.Center
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(text = "${dj.points} points")
+                Text(text = "${dj.points} points", color = MaterialTheme.colorScheme.primary)
             }
 
             Text(

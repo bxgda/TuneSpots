@@ -58,7 +58,7 @@ fun PlaylistItem(
                 )
             }
             Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                Text(playlist.name, style = MaterialTheme.typography.titleMedium)
+                Text(playlist.name, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
                 Spacer(modifier = Modifier.height(4.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     AsyncImage(
@@ -73,7 +73,7 @@ fun PlaylistItem(
                     Text(" by $authorName", style = MaterialTheme.typography.bodyMedium.copy(fontStyle = FontStyle.Italic))
                 }
                 Spacer(modifier = Modifier.height(4.dp))
-                Text("# ${playlist.genre}", style = MaterialTheme.typography.bodySmall)
+                Text("# ${playlist.genre}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
                 Spacer(modifier = Modifier.height(4.dp))
                 Text("${playlist.tracks.size} tracks", style = MaterialTheme.typography.bodySmall)
             }

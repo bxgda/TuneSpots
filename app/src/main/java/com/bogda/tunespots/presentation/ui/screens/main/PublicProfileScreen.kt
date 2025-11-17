@@ -108,17 +108,26 @@ fun PublicProfileScreen(
                                 }
                             }
                             Spacer(modifier = Modifier.height(16.dp))
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(MaterialTheme.shapes.medium)
+                                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                                    .padding(16.dp),
                             ) {
-                                Text(user.username, style = MaterialTheme.typography.headlineMedium)
-                                Text("${user.firstName} ${user.lastName}", style = MaterialTheme.typography.bodyLarge)
-                                Text(
-                                    text = "Points: ${user.points}",
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(user.username, style = MaterialTheme.typography.headlineMedium)
+                                    Text("${user.firstName} ${user.lastName}", style = MaterialTheme.typography.bodyLarge)
+                                    Text(
+                                        text = "Points: ${user.points}",
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
                             }
                         }
                     }

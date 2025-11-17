@@ -17,6 +17,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -35,6 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -103,8 +105,6 @@ fun ProfileScreen(
             Box(
                 modifier = Modifier
                     .size(120.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.secondaryContainer)
                     .clickable { viewModel.onProfileImageClick() },
                 contentAlignment = Alignment.Center
             ) {
@@ -113,15 +113,37 @@ fun ProfileScreen(
                     AsyncImage(
                         model = imageUrl,
                         contentDescription = "Profile picture",
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier.fillMaxSize().clip(CircleShape),
                         contentScale = ContentScale.Crop
                     )
                 } else {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.secondaryContainer),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = "No profile picture",
+                            modifier = Modifier.size(72.dp),
+                            tint = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                    }
+                }
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary)
+                        .align(Alignment.BottomEnd),
+                    contentAlignment = Alignment.Center
+                ) {
                     Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = "No profile picture",
-                        modifier = Modifier.size(72.dp),
-                        tint = MaterialTheme.colorScheme.onSecondaryContainer
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Add photo",
+                        tint = Color.White
                     )
                 }
             }
@@ -133,20 +155,30 @@ fun ProfileScreen(
                 is ProfileViewModel.UserState.Loading -> {
                     CircularProgressIndicator()
                 }
+
                 is ProfileViewModel.UserState.Loaded -> {
                     val user = state.user
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(MaterialTheme.shapes.medium)
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                            .padding(16.dp),
                     ) {
-                        Text(text = user.username, style = MaterialTheme.typography.headlineMedium)
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(text = user.email, style = MaterialTheme.typography.bodyLarge)
-                        Spacer(modifier = Modifier.height(32.dp))
-                        Text(
-                            text = "Points: ${user.points}",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.primary
-                        )
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(text = user.username, style = MaterialTheme.typography.headlineMedium)
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(text = user.email, style = MaterialTheme.typography.bodyLarge)
+                            Spacer(modifier = Modifier.height(32.dp))
+                            Text(
+                                text = "Points: ${user.points}",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     }
 
                     // Button placed directly after the points
@@ -161,6 +193,7 @@ fun ProfileScreen(
                         Text("Log Out")
                     }
                 }
+
                 is ProfileViewModel.UserState.Error -> {
                     Text(text = state.message, color = MaterialTheme.colorScheme.error)
                 }

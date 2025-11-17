@@ -72,6 +72,11 @@ fun LoginScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+            Text(
+                text = "Welcome back!",
+                style = MaterialTheme.typography.headlineLarge
+            )
+            Spacer(Modifier.height(32.dp))
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
