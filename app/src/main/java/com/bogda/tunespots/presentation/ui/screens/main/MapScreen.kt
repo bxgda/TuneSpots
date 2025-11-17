@@ -40,7 +40,8 @@ import com.google.maps.android.compose.MarkerState
 fun MapScreen(
     modifier: Modifier = Modifier,
     viewModel: MapViewModel,
-    onAddPlaylistClick: () -> Unit
+    onAddPlaylistClick: () -> Unit,
+    onPlaylistClick: (String) -> Unit
 ) {
     val locationPermissions = rememberMultiplePermissionsState(
         permissions = listOf(
@@ -75,7 +76,8 @@ fun MapScreen(
                 MapView(
                     cameraPositionState = viewModel.cameraPositionState,
                     playlists = uiState.playlists,
-                    nearbyPlaylistIds = uiState.nearbyPlaylistIds
+                    nearbyPlaylistIds = uiState.nearbyPlaylistIds,
+                    onPlaylistClick = onPlaylistClick
                 )
             }
             locationPermissions.shouldShowRationale -> {
@@ -101,7 +103,8 @@ fun MapScreen(
 private fun MapView(
     cameraPositionState: CameraPositionState,
     playlists: List<Playlist>,
-    nearbyPlaylistIds: Set<String>
+    nearbyPlaylistIds: Set<String>,
+    onPlaylistClick: (String) -> Unit
 ) {
     val context = LocalContext.current
     val mapProperties by remember {
@@ -126,7 +129,7 @@ private fun MapView(
         modifier = Modifier.fillMaxSize(),
         cameraPositionState = cameraPositionState,
         properties = mapProperties,
-        uiSettings = mapUiSettings
+        uiSettings = mapUiSettings,
     ) {
         playlists.forEach { playlist ->
             val location = playlist.location
@@ -141,7 +144,11 @@ private fun MapView(
                 state = MarkerState(position = LatLng(location.latitude, location.longitude)),
                 title = playlist.name,
                 snippet = playlist.description,
-                icon = BitmapDescriptorFactory.defaultMarker(iconColor)
+                icon = BitmapDescriptorFactory.defaultMarker(iconColor),
+                onClick = {
+                    onPlaylistClick(playlist.id)
+                    true
+                }
             )
         }
     }

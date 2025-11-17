@@ -40,10 +40,18 @@ class PlaylistRepository @Inject constructor(
                 return@addSnapshotListener
             }
             snapshot?.let {
-                trySend(it.toObjects<Playlist>()) // Use toObjects extension
+                trySend(it.toObjects<Playlist>())
             }
         }
         awaitClose { listener.remove() }
+    }
+
+    suspend fun getPlaylist(playlistId: String): Playlist? {
+        return try {
+            playlistCollection.document(playlistId).get().await().toObject(Playlist::class.java)
+        } catch (e: Exception) {
+            null
+        }
     }
 
     suspend fun uploadPlaylistImage(imageUri: Uri): String? {

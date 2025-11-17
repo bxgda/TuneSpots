@@ -6,31 +6,51 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddAPhoto
-import androidx.compose.material.icons.filled.Remove
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import com.bogda.tunespots.BuildConfig
-import com.bogda.tunespots.R
-import com.bogda.tunespots.data.model.Track
 import com.bogda.tunespots.presentation.ui.components.ImageSourceDialog
+import com.bogda.tunespots.presentation.ui.components.TrackItem
 import com.bogda.tunespots.presentation.ui.viewmodels.playlists.AddPlaylistViewModel
 import java.io.File
 
@@ -215,41 +235,6 @@ fun AddPlaylistScreen(
             }
         }
     }
-}
-
-@Composable
-fun TrackItem(
-    track: Track,
-    isSelected: Boolean,
-    onToggleSelect: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    ListItem(
-        modifier = modifier,
-        headlineContent = { Text(track.title, maxLines = 1) },
-        supportingContent = { Text(track.artist, maxLines = 1) },
-        leadingContent = {
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(track.coverArtUrl)
-                    .crossfade(true)
-                    .build(),
-                placeholder = painterResource(R.drawable.ic_music_placeholder),
-                error = painterResource(R.drawable.ic_music_placeholder),
-                contentDescription = "Cover for ${track.title}",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.size(56.dp).clip(MaterialTheme.shapes.small)
-            )
-        },
-        trailingContent = {
-            IconButton(onClick = onToggleSelect) {
-                Icon(
-                    imageVector = if (isSelected) Icons.Default.Remove else Icons.Default.Add,
-                    contentDescription = if (isSelected) "Remove song" else "Add song"
-                )
-            }
-        }
-    )
 }
 
 private fun createImageUri(context: Context): Uri {

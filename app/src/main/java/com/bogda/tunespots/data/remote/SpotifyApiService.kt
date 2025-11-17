@@ -13,10 +13,20 @@ interface SpotifyApiService {
         @Query("q") query: String,
         @Query("type") type: String = "track"
     ): SpotifySearchResponse
+
+    @GET("tracks")
+    suspend fun getTracks(
+        @Header("Authorization") token: String,
+        @Query("ids") ids: String
+    ): SpotifyGetTracksResponse
 }
 
 data class SpotifySearchResponse(
     val tracks: TrackList
+)
+
+data class SpotifyGetTracksResponse(
+    val tracks: List<Track>
 )
 
 data class TrackList(
