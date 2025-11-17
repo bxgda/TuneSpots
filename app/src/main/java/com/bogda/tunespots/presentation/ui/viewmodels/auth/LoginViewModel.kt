@@ -2,40 +2,65 @@ package com.bogda.tunespots.presentation.auth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.bogda.tunespots.data.repository.AuthRepository
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
-
-sealed interface AuthUiState {
-    object Idle : AuthUiState
-    object Loading : AuthUiState
-    object Success : AuthUiState
-    data class Error(val message: String) : AuthUiState
-}
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val authRepository: AuthRepository
+    private val firebaseAuth: FirebaseAuth,
+    private val firestore: FirebaseFirestore,
+    private val firebaseMessaging: FirebaseMessaging
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<AuthUiState>(AuthUiState.Idle)
-    val uiState = _uiState.asStateFlow()
+    val uiState: StateFlow<AuthUiState> = _uiState
 
-    fun loginUser(email: String, pass: String) {
+    fun loginUser(email: String, password: String) {
+        if (email.isBlank() || password.isBlank()) {
+            _uiState.value = AuthUiState.Error("Email and password cannot be empty.")
+            return
+        }
+
+        _uiState.value = AuthUiState.Loading
         viewModelScope.launch {
-            _uiState.value = AuthUiState.Loading
-            val result = authRepository.loginUser(email, pass)
-            _uiState.value = result.fold(
-                onSuccess = { AuthUiState.Success },
-                onFailure = { AuthUiState.Error(it.message ?: "An unknown error occurred.") }
-            )
+            try {
+                firebaseAuth.signInWithEmailAndPassword(email, password).await()
+                updateFcmToken()
+                _uiState.value = AuthUiState.Success
+            } catch (e: Exception) {
+                _uiState.value = AuthUiState.Error(e.message ?: "An unknown error occurred.")
+            }
+        }
+    }
+
+    private suspend fun updateFcmToken() {
+        try {
+            val token = firebaseMessaging.token.await()
+            firebaseAuth.currentUser?.uid?.let { userId ->
+                firestore.collection("users").document(userId)
+                    .update("fcmToken", token)
+                    .await()
+            }
+        } catch (e: Exception) {
+            // Optional: handle error while updating token
         }
     }
 
     fun resetState() {
         _uiState.value = AuthUiState.Idle
     }
+}
+
+sealed class AuthUiState {
+    object Idle : AuthUiState()
+    object Loading : AuthUiState()
+    object Success : AuthUiState()
+    data class Error(val message: String) : AuthUiState()
 }

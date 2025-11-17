@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
@@ -40,23 +41,23 @@ fun PlaylistItem(
             .clickable(onClick = onClick)
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (playlist.coverImageUrl?.isNotEmpty() == true) {
                 AsyncImage(
                     model = playlist.coverImageUrl,
                     contentDescription = "Playlist image",
-                    modifier = Modifier.size(56.dp)
+                    modifier = Modifier.size(100.dp),
+                    contentScale = ContentScale.Crop
                 )
             } else {
                 Icon(
                     imageVector = Icons.Default.MusicNote,
                     contentDescription = "No playlist image",
-                    modifier = Modifier.size(56.dp)
+                    modifier = Modifier.size(100.dp)
                 )
             }
-            Column(modifier = Modifier.padding(start = 16.dp)) {
+            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
                 Text(playlist.name, style = MaterialTheme.typography.titleMedium)
                 Spacer(modifier = Modifier.height(4.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -71,6 +72,8 @@ fun PlaylistItem(
                     )
                     Text(" by $authorName", style = MaterialTheme.typography.bodyMedium.copy(fontStyle = FontStyle.Italic))
                 }
+                Spacer(modifier = Modifier.height(4.dp))
+                Text("# ${playlist.genre}", style = MaterialTheme.typography.bodySmall)
                 Spacer(modifier = Modifier.height(4.dp))
                 Text("${playlist.tracks.size} tracks", style = MaterialTheme.typography.bodySmall)
             }

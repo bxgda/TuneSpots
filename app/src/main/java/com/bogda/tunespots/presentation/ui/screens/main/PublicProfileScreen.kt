@@ -1,6 +1,7 @@
 package com.bogda.tunespots.presentation.ui.screens.main
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -107,9 +108,18 @@ fun PublicProfileScreen(
                                 }
                             }
                             Spacer(modifier = Modifier.height(16.dp))
-                            Text(user.username, style = MaterialTheme.typography.headlineMedium)
-                            Text("${user.firstName} ${user.lastName}", style = MaterialTheme.typography.bodyLarge)
-                            Text("Points: ${user.points}", style = MaterialTheme.typography.bodyLarge)
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                Text(user.username, style = MaterialTheme.typography.headlineMedium)
+                                Text("${user.firstName} ${user.lastName}", style = MaterialTheme.typography.bodyLarge)
+                                Text(
+                                    text = "Points: ${user.points}",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
                         }
                     }
 

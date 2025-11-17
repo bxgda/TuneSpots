@@ -71,12 +71,20 @@ fun ProfileScreen(onLogout: () -> Unit, viewModel: ProfileViewModel = hiltViewMo
                 }
                 is ProfileViewModel.UserState.Loaded -> {
                     val user = state.user
-                    Text(text = user.username, style = MaterialTheme.typography.headlineMedium)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = user.email, style = MaterialTheme.typography.bodyLarge)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = "Points: ${user.points}", style = MaterialTheme.typography.bodyLarge)
-                    
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(text = user.username, style = MaterialTheme.typography.headlineMedium)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(text = user.email, style = MaterialTheme.typography.bodyLarge)
+                        Spacer(modifier = Modifier.height(32.dp))
+                        Text(
+                            text = "Points: ${user.points}",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+
                     // Button placed directly after the points
                     Spacer(modifier = Modifier.height(32.dp))
                     Button(
@@ -93,7 +101,7 @@ fun ProfileScreen(onLogout: () -> Unit, viewModel: ProfileViewModel = hiltViewMo
                     Text(text = state.message, color = MaterialTheme.colorScheme.error)
                 }
             }
-            
+
             Spacer(modifier = Modifier.height(16.dp))
         }
     }

@@ -57,7 +57,10 @@ object Routes {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppNavHost() {
+fun AppNavHost(
+    onLoginSuccess: () -> Unit,
+    onLogout: () -> Unit,
+) {
     val appNavController = rememberNavController()
 
     val firebaseAuth = FirebaseAuth.getInstance()
@@ -83,6 +86,7 @@ fun AppNavHost() {
                 LoginScreen(
                     onNavigateBack = { appNavController.popBackStack() },
                     onLoginSuccess = {
+                        onLoginSuccess() // Call the function from MainActivity
                         appNavController.navigate(Routes.HOME_GRAPH) {
                             popUpTo(Routes.AUTH_GRAPH) { inclusive = true }
                         }
@@ -95,6 +99,7 @@ fun AppNavHost() {
                 RegisterScreen(
                     onNavigateBack = { appNavController.popBackStack() },
                     onRegisterSuccess = {
+                        onLoginSuccess() // Also call on login success after registration
                         appNavController.navigate(Routes.HOME_GRAPH) {
                             popUpTo(Routes.AUTH_GRAPH) { inclusive = true }
                         }
@@ -152,6 +157,7 @@ fun AppNavHost() {
                     ProfileScreen(
                         modifier = modifier,
                         onLogout = {
+                            onLogout() // Call the function from MainActivity
                             appNavController.navigate(Routes.AUTH_GRAPH) {
                                 popUpTo(Routes.HOME_GRAPH) { inclusive = true }
                             }
