@@ -16,8 +16,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -32,21 +34,25 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.bogda.tunespots.R
 import com.bogda.tunespots.presentation.ui.components.TrackItem
+import com.bogda.tunespots.presentation.ui.viewmodels.main.MapViewModel
 import com.bogda.tunespots.presentation.ui.viewmodels.playlists.PlaylistState
 import com.bogda.tunespots.presentation.ui.viewmodels.playlists.PlaylistViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlaylistScreen(
-    viewModel: PlaylistViewModel = hiltViewModel(),
+    playlistViewModel: PlaylistViewModel = hiltViewModel(),
+    mapViewModel: MapViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit
 ) {
-    val playlistState by viewModel.playlistState.collectAsState()
+    val playlistState by playlistViewModel.playlistState.collectAsState()
+    val mapUiState by mapViewModel.uiState.collectAsState()
 
     Scaffold(
         topBar = {
@@ -58,6 +64,15 @@ fun PlaylistScreen(
                     }
                 }
             )
+        },
+        floatingActionButton = {
+            (playlistState as? PlaylistState.Loaded)?.playlist?.id?.let { playlistId ->
+                if (mapUiState.nearbyPlaylistIds.contains(playlistId)) {
+                    FloatingActionButton(onClick = { /* TODO: Handle edit playlist */ }) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit playlist")
+                    }
+                }
+            }
         }
     ) { paddingValues ->
         when (val state = playlistState) {
@@ -82,6 +97,14 @@ fun PlaylistScreen(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
                         ) {
+                            if (mapUiState.nearbyPlaylistIds.contains(state.playlist.id)) {
+                                Text(
+                                    text = "You can be contributor!",
+                                    style = MaterialTheme.typography.headlineLarge,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                            }
                             AsyncImage(
                                 model = state.playlist.coverImageUrl,
                                 contentDescription = "Playlist image",
@@ -93,7 +116,11 @@ fun PlaylistScreen(
                                 contentScale = ContentScale.Crop
                             )
                             Spacer(modifier = Modifier.height(16.dp))
-                            Text(state.playlist.name, style = MaterialTheme.typography.headlineMedium)
+                            Text(
+                                text = state.playlist.name,
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.Bold
+                            )
                             state.playlist.description?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
                             Spacer(modifier = Modifier.height(16.dp))
                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -145,7 +172,7 @@ fun PlaylistScreen(
                                 .clip(MaterialTheme.shapes.medium)
                                 .border(1.dp, MaterialTheme.colorScheme.outline, MaterialTheme.shapes.medium)
                         ) {
-                            TrackItem(track = track, onToggleSelect = {})
+                            TrackItem(track = track, onToggleSelect = { })
                         }
                     }
                 }
