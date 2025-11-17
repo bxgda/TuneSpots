@@ -125,6 +125,7 @@ fun PublicProfileScreen(
                         PlaylistItem(
                             playlist = playlist,
                             authorName = user.username,
+                            authorImageUrl = user.profilePictureUrl,
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                             onClick = { navController.navigate(Routes.playlistDetail(playlist.id)) }
                         )

@@ -127,8 +127,14 @@ fun AppNavHost() {
                 }
             }
             composable(Routes.SEARCH) {
+                backStackEntry ->
+                val homeGraphBackStackEntry = remember(backStackEntry) {
+                    appNavController.getBackStackEntry(Routes.HOME_GRAPH)
+                }
+                val mapViewModel: MapViewModel = hiltViewModel(homeGraphBackStackEntry)
+
                 MainScaffoldWithContent(navController = appNavController) { modifier ->
-                    SearchScreen(modifier = modifier)
+                    SearchScreen(modifier = modifier, navController = appNavController, mapViewModel = mapViewModel)
                 }
             }
             composable(Routes.LEADERBOARD) {

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.bogda.tunespots.data.repository.PlaylistRepository
 import com.bogda.tunespots.data.repository.UserRepository
 import com.bogda.tunespots.domain.model.Playlist
+import com.bogda.tunespots.domain.model.User
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,8 +17,8 @@ import javax.inject.Inject
 
 data class PlaylistUiState(
     val isLoading: Boolean = false,
-    val authoredPlaylists: List<Pair<Playlist, String>> = emptyList(),
-    val contributedPlaylists: List<Pair<Playlist, String>> = emptyList(),
+    val authoredPlaylists: List<Pair<Playlist, User>> = emptyList(),
+    val contributedPlaylists: List<Pair<Playlist, User>> = emptyList(),
     val error: String? = null
 )
 
@@ -46,19 +47,21 @@ class PlaylistViewModel @Inject constructor(
 
             playlistRepository.getPlaylists(userId)
                 .onSuccess { (authored, contributed) ->
-                    val authoredWithNames = authored.map { playlist ->
-                        val user = userRepository.getUser(playlist.ownerId).getOrNull()
-                        Pair(playlist, user?.username ?: "Unknown")
+                    val authoredWithUsers = authored.mapNotNull { playlist ->
+                        userRepository.getUser(playlist.ownerId).getOrNull()?.let { user ->
+                            Pair(playlist, user)
+                        }
                     }
-                    val contributedWithNames = contributed.map { playlist ->
-                        val user = userRepository.getUser(playlist.ownerId).getOrNull()
-                        Pair(playlist, user?.username ?: "Unknown")
+                    val contributedWithUsers = contributed.mapNotNull { playlist ->
+                        userRepository.getUser(playlist.ownerId).getOrNull()?.let { user ->
+                            Pair(playlist, user)
+                        }
                     }
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            authoredPlaylists = authoredWithNames,
-                            contributedPlaylists = contributedWithNames
+                            authoredPlaylists = authoredWithUsers,
+                            contributedPlaylists = contributedWithUsers
                         )
                     }
                 }

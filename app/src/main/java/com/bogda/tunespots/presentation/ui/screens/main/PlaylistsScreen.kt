@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.bogda.tunespots.domain.model.Playlist
+import com.bogda.tunespots.domain.model.User
 import com.bogda.tunespots.presentation.navigation.Routes
 import com.bogda.tunespots.presentation.ui.components.PlaylistItem
 import com.bogda.tunespots.presentation.ui.viewmodels.main.PlaylistViewModel
@@ -75,13 +76,14 @@ fun PlaylistsScreen(
                 }
             } else {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    val playlists = mutableListOf<Pair<Playlist, String>>()
+                    val playlists = mutableListOf<Pair<Playlist, User>>()
                     if(showAuthored) playlists.addAll(uiState.authoredPlaylists)
                     if(showContributed) playlists.addAll(uiState.contributedPlaylists)
-                    items(playlists.distinct()) { (playlist, authorName) ->
+                    items(playlists.distinct()) { (playlist, author) ->
                         PlaylistItem(
                             playlist = playlist,
-                            authorName = authorName,
+                            authorName = author.username,
+                            authorImageUrl = author.profilePictureUrl,
                             modifier = Modifier.padding(16.dp),
                             onClick = { navController.navigate(Routes.playlistDetail(playlist.id)) }
                         )
