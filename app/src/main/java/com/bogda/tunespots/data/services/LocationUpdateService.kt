@@ -150,6 +150,6 @@ class LocationUpdateService : Service(), DefaultLifecycleObserver {
         private const val NOTIFICATION_ID = 12345
 
         private const val FOREGROUND_INTERVAL = 5000L  // 5 seconds
-        private const val BACKGROUND_INTERVAL = 10000L // 10 seconds
+        private const val BACKGROUND_INTERVAL = 300000L // 5 minutes
     }
 }
