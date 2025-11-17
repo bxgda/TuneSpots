@@ -12,6 +12,7 @@ import com.bogda.tunespots.domain.model.User
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -37,21 +38,26 @@ class PlaylistViewModel @Inject constructor(
 
     private fun loadPlaylistDetails(playlistId: String) {
         viewModelScope.launch {
-            try {
-                val playlist = playlistRepository.getPlaylist(playlistId) ?: throw Exception("Playlist not found.")
-                val owner = userRepository.getUser(playlist.ownerId).getOrThrow()
-                val tracks = spotifyRepository.getTracks(playlist.tracks).getOrThrow()
-                val contributors = playlist.contributorIds?.let { userIds ->
-                    if (userIds.isNotEmpty()) {
-                        userRepository.getUsers(userIds).getOrThrow()
-                    } else {
-                        emptyList()
-                    }
-                } ?: emptyList()
+            playlistRepository.getPlaylist(playlistId).collect { playlist ->
+                if (playlist != null) {
+                    try {
+                        val owner = userRepository.getUser(playlist.ownerId).getOrThrow()
+                        val tracks = spotifyRepository.getTracks(playlist.tracks).getOrThrow()
+                        val contributors = playlist.contributorIds?.let { userIds ->
+                            if (userIds.isNotEmpty()) {
+                                userRepository.getUsers(userIds).getOrThrow()
+                            } else {
+                                emptyList()
+                            }
+                        } ?: emptyList()
 
-                _playlistState.value = PlaylistState.Loaded(playlist, owner, tracks, contributors)
-            } catch (e: Exception) {
-                _playlistState.value = PlaylistState.Error(e.message ?: "Failed to load playlist details.")
+                        _playlistState.value = PlaylistState.Loaded(playlist, owner, tracks, contributors)
+                    } catch (e: Exception) {
+                        _playlistState.value = PlaylistState.Error(e.message ?: "Failed to load playlist details.")
+                    }
+                } else {
+                    _playlistState.value = PlaylistState.Error("Playlist not found.")
+                }
             }
         }
     }

@@ -2,6 +2,7 @@ package com.bogda.tunespots.data.repository
 
 import android.net.Uri
 import com.bogda.tunespots.domain.model.Playlist
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.toObjects
 import kotlinx.coroutines.channels.awaitClose
@@ -46,17 +47,24 @@ class PlaylistRepository @Inject constructor(
         awaitClose { listener.remove() }
     }
 
-    suspend fun getPlaylist(playlistId: String): Playlist? {
-        return try {
-            playlistCollection.document(playlistId).get().await().toObject(Playlist::class.java)
-        } catch (e: Exception) {
-            null
+    fun getPlaylist(playlistId: String): Flow<Playlist?> = callbackFlow {
+        val listenerRegistration = playlistCollection.document(playlistId).addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                close(error)
+                return@addSnapshotListener
+            }
+            if (snapshot != null && snapshot.exists()) {
+                trySend(snapshot.toObject(Playlist::class.java))
+            } else {
+                trySend(null)
+            }
         }
+        awaitClose { listenerRegistration.remove() }
     }
 
-    suspend fun uploadPlaylistImage(imageUri: Uri): String? {
-        val userId = authRepository.getCurrentUserId() ?: return null
-        return storageRepository.uploadPlaylistImage(imageUri, userId).getOrNull()
+    suspend fun uploadPlaylistImage(imageUri: Uri): Result<String> {
+        val userId = authRepository.getCurrentUserId() ?: return Result.failure(Exception("User not logged in"))
+        return storageRepository.uploadPlaylistImage(imageUri, userId)
     }
 
     suspend fun getPlaylists(userId: String): Result<Pair<List<Playlist>, List<Playlist>>> {
@@ -77,5 +85,13 @@ class PlaylistRepository @Inject constructor(
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    suspend fun addTracksToPlaylist(playlistId: String, trackIds: List<String>) {
+        playlistCollection.document(playlistId).update("tracks", FieldValue.arrayUnion(*trackIds.toTypedArray())).await()
+    }
+
+    suspend fun addContributor(playlistId: String, userId: String) {
+        playlistCollection.document(playlistId).update("contributorIds", FieldValue.arrayUnion(userId)).await()
     }
 }

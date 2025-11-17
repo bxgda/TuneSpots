@@ -102,7 +102,7 @@ class AddPlaylistViewModel @Inject constructor(
                 val pointsToAdd = selectedTracks.value.size.toLong()
 
                 val imageUrl: String? = playlistImageUri.value?.let { uri ->
-                    playlistRepository.uploadPlaylistImage(uri)
+                    playlistRepository.uploadPlaylistImage(uri).getOrNull()
                 }
 
                 val newPlaylist = Playlist(

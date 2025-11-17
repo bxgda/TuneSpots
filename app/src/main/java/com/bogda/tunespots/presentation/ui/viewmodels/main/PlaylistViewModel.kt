@@ -1,4 +1,4 @@
-package com.bogda.tunespots.presentation.ui.screens.main
+package com.bogda.tunespots.presentation.ui.viewmodels.main
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

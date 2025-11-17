@@ -3,6 +3,7 @@ package com.bogda.tunespots.data.repository
 import android.net.Uri
 import com.bogda.tunespots.domain.model.User
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -25,19 +26,16 @@ class AuthRepository @Inject constructor(
         imageUri: Uri?
     ): Result<Unit> {
         return try {
-            // kreiramo korisnika u Firebase Authentication da bismo dobili njegov jedinstveni ID
             val authResult = auth.createUserWithEmailAndPassword(email, pass).await()
             val firebaseUser = authResult.user ?: throw Exception("Kreiranje korisnika nije uspelo.")
             val userId = firebaseUser.uid
 
-            // ako ima slika onda se ona upload-uje na cloudinary
             var profilePictureUrl: String? = null
             if (imageUri != null) {
                 profilePictureUrl = storageRepository.uploadProfileImage(imageUri, userId)
                     .getOrThrow()
             }
 
-            // pravimo objekat korisnika sa svim podacima
             val user = User(
                 id = userId,
                 email = email,
@@ -49,14 +47,12 @@ class AuthRepository @Inject constructor(
                 points = 0
             )
 
-            // cuvamo korisnika u Firestore bazu podataka
             firestore.collection("users").document(userId).set(user).await()
 
             Result.success(Unit)
         } catch (e: Exception) {
-            // ako nesto ne uspe onda se brise taj neuspeli podatak
             auth.currentUser?.delete()?.await()
-            Result.failure(e) // Vrati grešku
+            Result.failure(e)
         }
     }
 
@@ -75,5 +71,9 @@ class AuthRepository @Inject constructor(
 
     fun getCurrentUserId(): String? {
         return auth.currentUser?.uid
+    }
+
+    fun getCurrentUser(): FirebaseUser? {
+        return auth.currentUser
     }
 }

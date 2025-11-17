@@ -13,11 +13,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.bogda.tunespots.presentation.navigation.Routes
 import com.bogda.tunespots.presentation.ui.components.TopDJList
+import com.bogda.tunespots.presentation.ui.viewmodels.main.LeaderboardViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LeaderboardScreen(
-    modifier: Modifier = Modifier, 
+    modifier: Modifier = Modifier,
     viewModel: LeaderboardViewModel = hiltViewModel(),
     navController: NavController
 ) {

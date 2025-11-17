@@ -28,6 +28,7 @@ import com.bogda.tunespots.presentation.ui.screens.main.ProfileScreen
 import com.bogda.tunespots.presentation.ui.screens.main.PublicProfileScreen
 import com.bogda.tunespots.presentation.ui.screens.main.SearchScreen
 import com.bogda.tunespots.presentation.ui.screens.playlists.AddPlaylistScreen
+import com.bogda.tunespots.presentation.ui.screens.playlists.ContributeToPlaylistScreen
 import com.bogda.tunespots.presentation.ui.screens.playlists.PlaylistScreen
 import com.bogda.tunespots.presentation.ui.viewmodels.main.MapViewModel
 import com.google.firebase.auth.FirebaseAuth
@@ -47,9 +48,11 @@ object Routes {
     const val ADD_PLAYLIST_DIALOG = "add_playlist_dialog"
     const val PLAYLIST_DETAIL = "playlist/{playlistId}"
     const val PUBLIC_PROFILE = "publicProfile/{userId}"
+    const val CONTRIBUTE_TO_PLAYLIST = "playlist/{playlistId}/contribute"
 
     fun playlistDetail(playlistId: String) = "playlist/$playlistId"
     fun publicProfile(userId: String) = "publicProfile/$userId"
+    fun contributeToPlaylist(playlistId: String) = "playlist/$playlistId/contribute"
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -162,7 +165,8 @@ fun AppNavHost() {
                 arguments = listOf(navArgument("playlistId") { type = NavType.StringType })
             ) {
                 PlaylistScreen(
-                    onNavigateBack = { appNavController.popBackStack() }
+                    onNavigateBack = { appNavController.popBackStack() },
+                    onContributeClick = { playlistId -> appNavController.navigate(Routes.contributeToPlaylist(playlistId)) }
                 )
             }
 
@@ -173,6 +177,15 @@ fun AppNavHost() {
                 PublicProfileScreen(
                     onNavigateBack = { appNavController.popBackStack() },
                     navController = appNavController
+                )
+            }
+
+            composable(
+                route = Routes.CONTRIBUTE_TO_PLAYLIST,
+                arguments = listOf(navArgument("playlistId") { type = NavType.StringType })
+            ) {
+                ContributeToPlaylistScreen(
+                    onNavigateBack = { appNavController.popBackStack() }
                 )
             }
         }

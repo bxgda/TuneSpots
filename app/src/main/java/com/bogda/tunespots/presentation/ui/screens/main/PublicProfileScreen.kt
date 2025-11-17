@@ -36,6 +36,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.bogda.tunespots.presentation.navigation.Routes
 import com.bogda.tunespots.presentation.ui.components.PlaylistItem
+import com.bogda.tunespots.presentation.ui.viewmodels.main.PublicProfileViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

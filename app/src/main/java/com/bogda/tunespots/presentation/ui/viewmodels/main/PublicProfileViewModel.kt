@@ -1,4 +1,4 @@
-package com.bogda.tunespots.presentation.ui.screens.main
+package com.bogda.tunespots.presentation.ui.viewmodels.main
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel

@@ -49,7 +49,8 @@ import com.bogda.tunespots.presentation.ui.viewmodels.playlists.PlaylistViewMode
 fun PlaylistScreen(
     playlistViewModel: PlaylistViewModel = hiltViewModel(),
     mapViewModel: MapViewModel = hiltViewModel(),
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onContributeClick: (String) -> Unit
 ) {
     val playlistState by playlistViewModel.playlistState.collectAsState()
     val mapUiState by mapViewModel.uiState.collectAsState()
@@ -68,7 +69,7 @@ fun PlaylistScreen(
         floatingActionButton = {
             (playlistState as? PlaylistState.Loaded)?.playlist?.id?.let { playlistId ->
                 if (mapUiState.nearbyPlaylistIds.contains(playlistId)) {
-                    FloatingActionButton(onClick = { /* TODO: Handle edit playlist */ }) {
+                    FloatingActionButton(onClick = { onContributeClick(playlistId) }) {
                         Icon(Icons.Default.Edit, contentDescription = "Edit playlist")
                     }
                 }
@@ -123,17 +124,19 @@ fun PlaylistScreen(
                             )
                             state.playlist.description?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
                             Spacer(modifier = Modifier.height(16.dp))
-                            Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("Autor:", style = MaterialTheme.typography.titleMedium)
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(4.dp)) {
                                 AsyncImage(
                                     model = state.owner.profilePictureUrl,
-                                    contentDescription = "Owner image",
+                                    contentDescription = state.owner.username,
                                     placeholder = painterResource(id = R.drawable.ic_music_placeholder),
                                     error = painterResource(id = R.drawable.ic_music_placeholder),
                                     modifier = Modifier
                                         .size(40.dp)
                                         .clip(CircleShape)
                                 )
-                                Text("Autor: ${state.owner.username}", style = MaterialTheme.typography.labelMedium)
+                                Text(state.owner.username, style = MaterialTheme.typography.labelSmall)
                             }
                             Spacer(modifier = Modifier.height(16.dp))
                             if (state.contributors.isNotEmpty()) {
