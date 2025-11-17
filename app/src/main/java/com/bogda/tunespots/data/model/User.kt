@@ -16,7 +16,7 @@ data class User(
 
     val points: Long = 0,
 
-    // Polja za notifikacije i lokaciju
+    // polja za notifikacije i lokaciju
     val fcmToken: String? = null,
     val lastLocation: GeoPoint? = null
 )

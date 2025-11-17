@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -20,11 +21,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.bogda.tunespots.R
 import com.bogda.tunespots.domain.model.Playlist
 
 @Composable
@@ -61,15 +60,22 @@ fun PlaylistItem(
                 Text(playlist.name, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
                 Spacer(modifier = Modifier.height(4.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    AsyncImage(
-                        model = authorImageUrl,
-                        contentDescription = "Author image",
-                        placeholder = painterResource(id = R.drawable.ic_music_placeholder),
-                        error = painterResource(id = R.drawable.ic_music_placeholder),
-                        modifier = Modifier
-                            .size(24.dp)
-                            .clip(CircleShape)
-                    )
+                    if (authorImageUrl?.isNotEmpty() == true) {
+                        AsyncImage(
+                            model = authorImageUrl,
+                            contentDescription = "Author image",
+                            modifier = Modifier
+                                .size(24.dp)
+                                .clip(CircleShape)
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = "No profile picture",
+                            modifier = Modifier.size(24.dp),
+                            tint = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                    }
                     Text(" by $authorName", style = MaterialTheme.typography.bodyMedium.copy(fontStyle = FontStyle.Italic))
                 }
                 Spacer(modifier = Modifier.height(4.dp))
