@@ -1,4 +1,8 @@
-# TuneSpots 🎵📍
+<p align="center">
+  <img src="screenshots/icon.png" width="300"/>
+</p>
+
+<h1 align="center">TuneSpots 🎵📍</h1>
 
 [![Kotlin](https://img.shields.io/badge/Kotlin-1.9.22-%237F52FF?style=for-the-badge&logo=kotlin)](https://kotlinlang.org/)
 [![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-1.6.0-%234285F4?style=for-the-badge&logo=google)](https://developer.android.com/jetpack/compose)
@@ -59,3 +63,25 @@ This project is built with a modern, scalable, and maintainable tech stack, embr
 ### External Services
 
 -   **[Spotify Web API](https://developer.spotify.com/documentation/web-api)**: The backbone of the musical experience. It is used to search for songs and retrieve rich metadata like track name, artist, album art, and preview URLs.
+
+<br>
+
+## 📸 Screenshots
+
+<p align="center">
+  <img src="screenshots/1.jpg" width="250"/>
+  <img src="screenshots/2.jpg" width="250"/>
+  <img src="screenshots/3.jpg" width="250"/>
+  <img src="screenshots/4.jpg" width="250"/>
+  <img src="screenshots/5.jpg" width="250"/>
+  <img src="screenshots/6.jpg" width="250"/>
+  <img src="screenshots/7.jpg" width="250"/>
+  <img src="screenshots/8.jpg" width="250"/>
+  <img src="screenshots/9.jpg" width="250"/>
+</p>
+
+##
+
+### Elektronski fakultet Univerziteta u Nišu
+smer: računarstvo i informatika<br/>
+semestar: 6
